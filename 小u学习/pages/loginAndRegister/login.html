@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <link rel="shortcut icon" href="../../favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="../../css/reset.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/login.css" />
+    <script src="../../js/vue-v2.6.10.js"></script>
+    <script src="../../js/axios-0.18.0.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="pos">
+            <div class="login">
+                <span class="close iconfont icon-close"></span>
+                <img src="../../img/login/loginlogo.png" alt="">
+                <ul>
+                    <li></li>
+                    <li class="phone" style="color: red;" v-html="msg"></li>
+                    <li></li>
+                </ul>
+                <form action="" id="form">
+                    <input type="text" class="tel" id="" v-model="phone" placeholder="请输入您的手机号" @blur="fun1(phone,'手机号不能为空')">
+                    <input type="password" class="pass" v-model="pwd" id="" placeholder="请输入密码" @blur="fun1(pwd,'密码不能为空')">
+                    <em></em>
+                    <div class="loginbtn" style="margin-left: 110px;line-height: 40px;" @click="sumitForm()">
+                        登陆
+                    </div>
+                </form>
+                <p>
+                    <span><a href="javascript:;">忘记密码</a></span>
+                    <span>
+                        还没有账号?
+                        <a href="../loginAndRegister/register.html">点击注册</a>
+                    </span>
+                </p>
+                <ul>
+                    <li></li>
+                    <li class="phone">使用第三方软件登录</li>
+                    <li></li>
+                </ul>
+                <p class="getCenter">
+                    <img src="../../img/login/wx.png" alt="">
+                    <img src="../../img/login/qq.png" alt="">
+                    <img src="../../img/login/sina.png" alt="">
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            phone:'',
+            pwd:'',
+            msg:'',
+            flag:false
+        },
+        methods: {
+            fun1(value,info){
+                if(value==null || value.trim()==""){
+                    this.msg=info
+                }else{
+                    
+                    if('手机号不能为空'==info){
+                        //是手机号
+                        var reg =/^1[3456789][0-9]{9}$/
+                        if(!reg.test(value)){
+                            this.msg="手机号不合法"
+                        }else{
+                            //手机号合法
+                            axios.get("http://localhost/edu/users?method=testPhone&phone="+value).then(resp=>{
+
+                                if(resp.data==1){
+                                    //是已注册会员
+                                    this.msg="<font color='green'>√</font>"
+                                    this.flag=true
+                                }else{
+                                    this.msg="请先<a href='register.html'>注册</a>"
+                                }
+
+                            })
+
+                        }
+
+                    }
+                }
+
+            },
+            //登录
+            sumitForm(){
+
+                if(this.pwd!=null && this.pwd.trim()!='' && this.flag==true){
+                    //校验通过
+                   var params= new URLSearchParams()
+                   params.append("phone",this.phone)
+                   params.append("pwd",this.pwd)
+                    //登录
+                    axios({
+                        url:"http://localhost/edu/users?method=login",
+                        data:params,
+                        method:"post"
+                    }).then(resp=>{
+
+                        if(resp.data.code==200){
+                            //JSON.stringify(json对象) 将json转成字符串
+                             alert(resp.data.message)
+                            //客户端session对象
+                              sessionStorage.setItem("user",JSON.stringify(resp.data.data))
+                            //跳转到首页面
+                              location.href="http://127.0.0.1:5501/%E5%B0%8Fu%E5%AD%A6%E4%B9%A0/index.html"
+                        }else{
+                            this.msg=resp.data.message
+                        }
+
+                    })
+                   
+                }
+
+
+            }
+        },
+        created() {
+
+        },
+
+    })
+</script>
+
+
+</html>
